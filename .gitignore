@@ -1,0 +1,26 @@
+# Entornos virtuales y dependencias
+venv/
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Node build
+dist/
+
+# Variables de entorno
+.env
+.env.*
+
+# IDEs
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

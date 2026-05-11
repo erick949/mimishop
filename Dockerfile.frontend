@@ -1,0 +1,56 @@
+# ────────────────────────────────────────────────────────────
+#  Stage 1 — build de producción con Node
+# ────────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY mimishop-frontend/package*.json ./
+RUN npm ci --frozen-lockfile
+
+COPY mimishop-frontend/ .
+
+RUN DS=src/design-system && \
+    mv $DS/atoms/Progressbar.jsx      $DS/atoms/ProgressBar.jsx      2>/dev/null || true && \
+    mv $DS/atoms/Selectinput.jsx      $DS/atoms/SelectInput.jsx      2>/dev/null || true && \
+    mv $DS/atoms/Textarea.jsx         $DS/atoms/TextArea.jsx         2>/dev/null || true && \
+    mv $DS/molecules/Chipcontact.jsx  $DS/molecules/ChipContact.jsx  2>/dev/null || true && \
+    mv $DS/molecules/Navitem.jsx      $DS/molecules/NavItem.jsx      2>/dev/null || true && \
+    mv $DS/molecules/Searchbar.jsx    $DS/molecules/SearchBar.jsx    2>/dev/null || true && \
+    mv $DS/molecules/Statcard.jsx     $DS/molecules/StatCard.jsx     2>/dev/null || true && \
+    mv $DS/organisms/Confirmdialog.jsx  $DS/organisms/ConfirmDialog.jsx  2>/dev/null || true && \
+    mv $DS/organisms/Datatable.jsx      $DS/organisms/DataTable.jsx      2>/dev/null || true && \
+    mv $DS/organisms/Modalform.jsx      $DS/organisms/ModalForm.jsx      2>/dev/null || true && \
+    mv $DS/organisms/Modulegrid.jsx     $DS/organisms/ModuleGrid.jsx     2>/dev/null || true && \
+    mv $DS/organisms/Pageheader.jsx     $DS/organisms/PageHeader.jsx     2>/dev/null || true && \
+    mv $DS/organisms/Sectionheader.jsx  $DS/organisms/SectionHeader.jsx  2>/dev/null || true && \
+    mv $DS/organisms/Sidepanel.jsx      $DS/organisms/SidePanel.jsx      2>/dev/null || true && \
+    mv $DS/organisms/Tabbar.jsx         $DS/organisms/TabBar.jsx         2>/dev/null || true && \
+    mv $DS/templates/Clientestabletemplate.jsx  $DS/templates/ClientesTableTemplate.jsx  2>/dev/null || true && \
+    mv $DS/templates/Dashboardlayout.jsx        $DS/templates/DashboardLayout.jsx        2>/dev/null || true && \
+    mv $DS/templates/Listlayout.jsx             $DS/templates/ListLayout.jsx             2>/dev/null || true && \
+    cp src/pages/clients/Clientes.css src/pages/clients/clientes.css 2>/dev/null || true && \
+    mkdir -p $DS/showcase && \
+    echo 'export const DesignSystemShowcase = () => null; export default DesignSystemShowcase;' \
+      > $DS/showcase/DesignSystemShowcase.jsx
+
+RUN npm run build
+
+# ────────────────────────────────────────────────────────────
+#  Stage 2 — Nginx sirve el build estático
+# ────────────────────────────────────────────────────────────
+FROM nginx:1.27-alpine
+
+RUN rm /etc/nginx/conf.d/default.conf
+
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD wget -qO- http://localhost/health || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]
