@@ -1,4 +1,4 @@
-const BASE_URL = '';
+const BASE_URL = 'https://mimishop-backend.onrender.com';
 async function request(endpoint, options = {}) {
   const token = localStorage.getItem('token');
   const headers = { 'Content-Type': 'application/json', ...options.headers };
