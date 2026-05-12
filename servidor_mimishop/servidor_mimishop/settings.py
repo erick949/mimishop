@@ -31,7 +31,15 @@ SECRET_KEY = 'django-insecure-u^lee93cy+va3=5mwje$63i+@$e#e!^%y@!)y)tc6olmw8etl)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "mimishop-frontend.onrender.com",
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "https://mimishop-frontend.onrender.com",
+]
 
 
 # Application definition
